@@ -25,6 +25,9 @@ public class Seller implements Serializable{
 		this.department = department;
 	}
 	
+	public Seller() {
+	}
+
 	public Date getBirthDate() {
 		return birthDate;
 	}
