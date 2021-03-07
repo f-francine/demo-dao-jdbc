@@ -4,7 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import db.DB;
 import db.DbException;
@@ -89,6 +92,49 @@ public class SellerDaoJDBC implements SellerDAO {
 	@Override
 	public void update(Seller seller) {
 		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public List<Seller> findByDepartment(Department department) {
+		PreparedStatement statment = null;
+		ResultSet resultSet = null;
+		try {
+			statment = connection.prepareStatement(
+					"SELECT seller.*,department.Name as DepartmentName "
+					+ "FROM seller INNER JOIN department "
+					+ "ON seller.DepartmentId = departmentId "
+					+ "WHERE DepartmentId = ? "
+					+ "ORDER BY Name");
+			
+			
+			statment.setInt(1, department.getId()); // 1 == first '?'
+			resultSet = statment.executeQuery();
+			
+			List<Seller> sellerList = new ArrayList<>();
+			
+			Map<Integer, Department> departmentController = new HashMap<>(); // One department can has various sellers, instead of each seller has one department. This Map will be used to control that.
+			while(resultSet.next()) {
+				
+				Department dep = departmentController.get(resultSet.getInt("DepartmentId"));
+				
+				if(dep == null) {
+					dep = instantiateDepartment(resultSet);
+					departmentController.put(resultSet.getInt("DepartmentId"), dep);
+				}
+				
+				Seller seller = instantiateSeller(resultSet, dep);
+				
+				sellerList.add(seller);
+			}
+			return sellerList;
+			
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(statment);
+			DB.closeResultSet(resultSet);
+		}
 		
 	}
 
