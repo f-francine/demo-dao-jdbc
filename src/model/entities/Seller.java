@@ -62,7 +62,7 @@ public class Seller implements Serializable{
 	public Department getDepartment() {
 		return department;
 	}
-	public void setDepartmet(Department department) {
+	public void setDepartment(Department department) {
 		this.department = department;
 	}
 

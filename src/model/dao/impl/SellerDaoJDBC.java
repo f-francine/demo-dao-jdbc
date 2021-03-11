@@ -16,17 +16,51 @@ import model.entities.Department;
 import model.entities.Seller;
 
 public class SellerDaoJDBC implements SellerDAO {
-	
+
 	private Connection connection;
 
 	public SellerDaoJDBC(Connection connection) { // Dependency injection
 		this.connection = connection;
 	}
-	
+
 	@Override
 	public List<Seller> findAll() {
-		// TODO Auto-generated method stub
-		return null;
+		PreparedStatement statment = null;
+		ResultSet resultSet = null;
+		try {
+			statment = connection.prepareStatement(
+					"SELECT seller.*,department.Name as DepartmentName " + "FROM seller INNER JOIN department "
+							+ "ON seller.DepartmentId = department.Id " + "ORDER BY Name");
+			
+			resultSet = statment.executeQuery();
+
+			List<Seller> sellerList = new ArrayList<>();
+
+			Map<Integer, Department> departmentController = new HashMap<>(); // One department can has various sellers,
+																				// instead of each seller has one
+																				// department. This Map will be used to
+																				// control that.
+			while (resultSet.next()) {
+
+				Department dep = departmentController.get(resultSet.getInt("DepartmentId"));
+
+				if (dep == null) {
+					dep = instantiateDepartment(resultSet);
+					departmentController.put(resultSet.getInt("DepartmentId"), dep);
+				}
+
+				Seller seller = instantiateSeller(resultSet, dep);
+
+				sellerList.add(seller);
+			}
+			return sellerList;
+
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(statment);
+			DB.closeResultSet(resultSet);
+		}
 	}
 
 	@Override
@@ -35,28 +69,65 @@ public class SellerDaoJDBC implements SellerDAO {
 		ResultSet resultSet = null;
 		try {
 			statment = connection.prepareStatement(
-					"SELECT seller.*, department.Name as DepartmentName "
-					+ "FROM seller INNER JOIN department "
-					+ "ON seller.DepartmentId = departmentId "
-					+ "WHERE seller.Id = ?");
-			
-			
+					"SELECT seller.*, department.Name as DepartmentName " + "FROM seller INNER JOIN department "
+							+ "ON seller.DepartmentId = departmentId " + "WHERE seller.Id = ?");
+
 			statment.setInt(1, id); // 1 == first '?'
 			resultSet = statment.executeQuery();
-			if(resultSet.next()) {
+			if (resultSet.next()) {
 				Department department = instantiateDepartment(resultSet);
-				
 				Seller seller = instantiateSeller(resultSet, department);
-				
 				return seller;
 			}
+			return null;
 		} catch (SQLException e) {
 			throw new DbException(e.getMessage());
 		} finally {
 			DB.closeStatement(statment);
 			DB.closeResultSet(resultSet);
 		}
-		return null;
+	}
+
+	@Override
+	public List<Seller> findByDepartment(Department department) {
+		PreparedStatement statment = null;
+		ResultSet resultSet = null;
+		try {
+			statment = connection.prepareStatement(
+					"SELECT seller.*,department.Name as DepartmentName " + "FROM seller INNER JOIN department "
+							+ "ON seller.DepartmentId = department.Id " + "WHERE DepartmentId = ? " + "ORDER BY Name");
+
+			statment.setInt(1, department.getId()); // 1 == first '?'
+			resultSet = statment.executeQuery();
+
+			List<Seller> sellerList = new ArrayList<>();
+
+			Map<Integer, Department> departmentController = new HashMap<>(); // One department can has various sellers,
+																				// instead of each seller has one
+																				// department. This Map will be used to
+																				// control that.
+			while (resultSet.next()) {
+
+				Department dep = departmentController.get(resultSet.getInt("DepartmentId"));
+
+				if (dep == null) {
+					dep = instantiateDepartment(resultSet);
+					departmentController.put(resultSet.getInt("DepartmentId"), dep);
+				}
+
+				Seller seller = instantiateSeller(resultSet, dep);
+
+				sellerList.add(seller);
+			}
+			return sellerList;
+
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(statment);
+			DB.closeResultSet(resultSet);
+		}
+
 	}
 
 	private Seller instantiateSeller(ResultSet resultSet, Department department) throws SQLException {
@@ -66,7 +137,7 @@ public class SellerDaoJDBC implements SellerDAO {
 		seller.setEmail(resultSet.getString("Email"));
 		seller.setBirthDate(resultSet.getDate("BirthDate"));
 		seller.setSalary(resultSet.getDouble("BaseSalary"));
-		seller.setDepartmet(department);
+		seller.setDepartment(department);
 		return seller;
 	}
 
@@ -80,62 +151,18 @@ public class SellerDaoJDBC implements SellerDAO {
 	@Override
 	public void deleteById(Integer id) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void insert(Seller seller) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void update(Seller seller) {
 		// TODO Auto-generated method stub
-		
-	}
 
-	@Override
-	public List<Seller> findByDepartment(Department department) {
-		PreparedStatement statment = null;
-		ResultSet resultSet = null;
-		try {
-			statment = connection.prepareStatement(
-					"SELECT seller.*,department.Name as DepartmentName "
-					+ "FROM seller INNER JOIN department "
-					+ "ON seller.DepartmentId = departmentId "
-					+ "WHERE DepartmentId = ? "
-					+ "ORDER BY Name");
-			
-			
-			statment.setInt(1, department.getId()); // 1 == first '?'
-			resultSet = statment.executeQuery();
-			
-			List<Seller> sellerList = new ArrayList<>();
-			
-			Map<Integer, Department> departmentController = new HashMap<>(); // One department can has various sellers, instead of each seller has one department. This Map will be used to control that.
-			while(resultSet.next()) {
-				
-				Department dep = departmentController.get(resultSet.getInt("DepartmentId"));
-				
-				if(dep == null) {
-					dep = instantiateDepartment(resultSet);
-					departmentController.put(resultSet.getInt("DepartmentId"), dep);
-				}
-				
-				Seller seller = instantiateSeller(resultSet, dep);
-				
-				sellerList.add(seller);
-			}
-			return sellerList;
-			
-		} catch (SQLException e) {
-			throw new DbException(e.getMessage());
-		} finally {
-			DB.closeStatement(statment);
-			DB.closeResultSet(resultSet);
-		}
-		
 	}
-
 }
