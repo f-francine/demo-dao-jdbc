@@ -33,26 +33,19 @@ public class SellerDaoJDBC implements SellerDAO {
 			statment = connection.prepareStatement(
 					"SELECT seller.*,department.Name as DepartmentName " + "FROM seller INNER JOIN department "
 							+ "ON seller.DepartmentId = department.Id " + "ORDER BY Name");
-
 			resultSet = statment.executeQuery();
-
 			List<Seller> sellerList = new ArrayList<>();
-
 			Map<Integer, Department> departmentController = new HashMap<>(); // One department can has various sellers,
 																				// instead of each seller has one
 																				// department. This Map will be used to
 																				// control that.
 			while (resultSet.next()) {
-
 				Department dep = departmentController.get(resultSet.getInt("DepartmentId"));
-
 				if (dep == null) {
 					dep = instantiateDepartment(resultSet);
 					departmentController.put(resultSet.getInt("DepartmentId"), dep);
 				}
-
 				Seller seller = instantiateSeller(resultSet, dep);
-
 				sellerList.add(seller);
 			}
 			return sellerList;
@@ -109,16 +102,12 @@ public class SellerDaoJDBC implements SellerDAO {
 																				// department. This Map will be used to
 																				// control that.
 			while (resultSet.next()) {
-
 				Department dep = departmentController.get(resultSet.getInt("DepartmentId"));
-
 				if (dep == null) {
 					dep = instantiateDepartment(resultSet);
 					departmentController.put(resultSet.getInt("DepartmentId"), dep);
 				}
-
 				Seller seller = instantiateSeller(resultSet, dep);
-
 				sellerList.add(seller);
 			}
 			return sellerList;
@@ -133,8 +122,23 @@ public class SellerDaoJDBC implements SellerDAO {
 
 	@Override
 	public void deleteById(Integer id) {
-		// TODO Auto-generated method stub
-
+		PreparedStatement statment = null;
+		
+		try {
+			statment = connection.prepareStatement("DELETE FROM seller WHERE id = ?");
+			statment.setInt(1, id);
+			
+			int rowsAffected = statment.executeUpdate();
+			
+			if (rowsAffected == 0) {
+				throw new DbException("THE ID YOU INFORM DOES NOT EXIST IN OUR DATABASE");
+			}
+			
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(statment);
+		}
 	}
 
 	@Override

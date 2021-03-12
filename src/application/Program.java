@@ -37,6 +37,7 @@ public class Program {
 		System.out.println("INSERTED! NEW SELLER ID -> " + newSeller.getId());
 		*/
 		
+		/*
 		System.out.println("\n::::: TEST 05 - UPDATE SELLER :::::");
 		seller = sellerDao.findById(10);
 		System.out.println("\nUPDATING ->" + seller);
@@ -47,5 +48,10 @@ public class Program {
 		
 		System.out.println("\nUPDATE COMPLETED! CHECK THE ALTERATIONS:");
 		System.out.println(seller);
+		*/
+		
+		System.out.println("\n::::: TEST 06 - DELETE BY ID :::::");
+		sellerDao.deleteById(16);
+		System.out.println("OK");
 	}
 }
