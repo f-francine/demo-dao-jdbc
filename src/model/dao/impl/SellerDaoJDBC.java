@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +32,7 @@ public class SellerDaoJDBC implements SellerDAO {
 			statment = connection.prepareStatement(
 					"SELECT seller.*,department.Name as DepartmentName " + "FROM seller INNER JOIN department "
 							+ "ON seller.DepartmentId = department.Id " + "ORDER BY Name");
-			
+
 			resultSet = statment.executeQuery();
 
 			List<Seller> sellerList = new ArrayList<>();
@@ -127,6 +128,53 @@ public class SellerDaoJDBC implements SellerDAO {
 			DB.closeStatement(statment);
 			DB.closeResultSet(resultSet);
 		}
+	}
+
+	@Override
+	public void deleteById(Integer id) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void insert(Seller seller) {
+		PreparedStatement statment = null;
+
+		try {
+			statment = connection.prepareStatement("INSERT INTO seller "
+					+ "(BirthDate, BaseSalary, Email, Name, DepartmentId) " + "VALUES " + "(?, ?, ?, ?, ?)",
+					Statement.RETURN_GENERATED_KEYS);
+
+			statment.setDate(1, new java.sql.Date(seller.getBirthDate().getTime()));
+			statment.setDouble(2, seller.getSalary());
+			statment.setString(3, seller.getEmail());
+			statment.setString(4, seller.getName());
+			statment.setInt(5, seller.getDepartment().getId());
+
+			int rowsAffected = statment.executeUpdate(); // To check if the insertion worked
+
+			if (rowsAffected > 0) {
+				ResultSet resultSet = statment.getGeneratedKeys();
+				if (resultSet.next()) {
+					int id = resultSet.getInt(1); // Id is the first argument
+					seller.setId(id);
+				}
+				DB.closeResultSet(resultSet);
+			}
+
+			else {
+				throw new DbException("Unexpected error! No rows affected!");
+			}
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(statment);
+		}
+	}
+
+	@Override
+	public void update(Seller seller) {
+		// TODO Auto-generated method stub
 
 	}
 
@@ -146,23 +194,5 @@ public class SellerDaoJDBC implements SellerDAO {
 		department.setId(resultSet.getInt("DepartmentId")); // Set departments value
 		department.setName(resultSet.getString("DepartmentName"));
 		return department;
-	}
-
-	@Override
-	public void deleteById(Integer id) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void insert(Seller seller) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void update(Seller seller) {
-		// TODO Auto-generated method stub
-
 	}
 }
