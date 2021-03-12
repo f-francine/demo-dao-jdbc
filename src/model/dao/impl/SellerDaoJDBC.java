@@ -32,7 +32,7 @@ public class SellerDaoJDBC implements SellerDAO {
 		try {
 			statment = connection.prepareStatement(
 					"SELECT seller.*,department.Name as DepartmentName " + "FROM seller INNER JOIN department "
-							+ "ON seller.DepartmentId = department.Id " + "ORDER BY Name");
+							+ "ON seller.DepartmentId = department.Id " + "ORDER BY Id");
 			resultSet = statment.executeQuery();
 			List<Seller> sellerList = new ArrayList<>();
 			Map<Integer, Department> departmentController = new HashMap<>(); // One department can has various sellers,
@@ -90,7 +90,7 @@ public class SellerDaoJDBC implements SellerDAO {
 		try {
 			statment = connection.prepareStatement(
 					"SELECT seller.*,department.Name as DepartmentName " + "FROM seller INNER JOIN department "
-							+ "ON seller.DepartmentId = department.Id " + "WHERE DepartmentId = ? " + "ORDER BY Name");
+							+ "ON seller.DepartmentId = department.Id " + "WHERE DepartmentId = ? " + "ORDER BY Id");
 
 			statment.setInt(1, department.getId()); // 1 == first '?'
 			resultSet = statment.executeQuery();
